@@ -12,6 +12,15 @@ class Plasann < Formula
 
   def install
     venv = virtualenv_create(libexec, "python3.9")
+    
+    # Install dependencies first
+    venv.pip_install "biopython"
+    venv.pip_install "pandas"
+    venv.pip_install "matplotlib"
+    venv.pip_install "pycirclize"
+    venv.pip_install "gdown"
+    
+    # Then install the package
     venv.pip_install "plasann"
     
     # Create a wrapper script
