@@ -12,17 +12,39 @@ class Plasann < Formula
     # Install the Scripts directory
     libexec.install "Scripts"
     
+    # Create a custom version of annotate_plasmid.py with fixed imports
+    (libexec/"fixed_annotate_plasmid.py").write <<~EOS
+      #!/usr/bin/env python3
+      
+      import sys
+      import os
+      import subprocess as sp
+      import time
+      import shutil
+      import argparse
+      import gdown
+      
+      # Fix imports to use absolute paths instead of relative
+      sys.path.insert(0, "#{libexec}")
+      import Scripts.essential_annotation as essential_annotation
+      import Scripts.draw_plasmid as draw_plasmid
+      
+      # Include the rest of the file from annotate_plasmid.py
+      #{File.read(libexec/"Scripts/annotate_plasmid.py").lines[8..-1].join}
+    EOS
+    
     # Install required dependencies
     system Formula["python@3.9"].opt_bin/"pip3", "install", "gdown", "biopython", "pandas", "matplotlib", "pycirclize"
     
-    # Create a simple direct wrapper - no Python packaging involved
+    # Create a wrapper script
     (bin/"PlasAnn").write <<~EOS
       #!/bin/bash
       export PATH="#{Formula["blast"].opt_bin}:#{Formula["prodigal"].opt_bin}:$PATH"
-      #{Formula["python@3.9"].opt_bin}/python3 "#{libexec}/Scripts/annotate_plasmid.py" "$@"
+      #{Formula["python@3.9"].opt_bin}/python3 "#{libexec}/fixed_annotate_plasmid.py" "$@"
     EOS
     
     chmod 0755, bin/"PlasAnn"
+    chmod 0755, libexec/"fixed_annotate_plasmid.py"
   end
 
   test do
