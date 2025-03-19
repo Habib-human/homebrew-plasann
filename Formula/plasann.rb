@@ -1,4 +1,6 @@
 class Plasann < Formula
+  include Language::Python::Virtualenv
+  
   desc "A plasmid annotation tool"
   homepage "https://github.com/ajlopatkin/PlasAnn"
   url "https://files.pythonhosted.org/packages/source/p/plasann/plasann-1.0.7.tar.gz"
@@ -9,8 +11,8 @@ class Plasann < Formula
   depends_on "python@3.9"
 
   def install
-    virtualenv_create(libexec, "python3.9")
-    system libexec/"bin/pip", "install", "plasann"
+    venv = virtualenv_create(libexec, "python3.9")
+    venv.pip_install "plasann"
     
     # Create a wrapper script
     (bin/"PlasAnn").write <<~EOS
