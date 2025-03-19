@@ -9,42 +9,51 @@ class Plasann < Formula
   depends_on "python@3.9"
   
   def install
-    # Install the Scripts directory
-    libexec.install "Scripts"
+    # Just copy all scripts to a dedicated location
+    (libexec/"Scripts").install Dir["Scripts/*"]
     
-    # Create a custom version of annotate_plasmid.py with fixed imports
-    (libexec/"fixed_annotate_plasmid.py").write <<~EOS
-      #!/usr/bin/env python3
-      
-      import sys
-      import os
-      import subprocess as sp
-      import time
-      import shutil
-      import argparse
-      import gdown
-      
-      # Fix imports to use absolute paths instead of relative
-      sys.path.insert(0, "#{libexec}")
-      import Scripts.essential_annotation as essential_annotation
-      import Scripts.draw_plasmid as draw_plasmid
-      
-      # Include the rest of the file from annotate_plasmid.py
-      #{File.read(libexec/"Scripts/annotate_plasmid.py").lines[8..-1].join}
-    EOS
+    # Install Python dependencies
+    system "pip3", "install", "--user", "gdown", "biopython", "pandas", "matplotlib", "pycirclize"
     
-    # Install required dependencies
-    system Formula["python@3.9"].opt_bin/"pip3", "install", "gdown", "biopython", "pandas", "matplotlib", "pycirclize"
-    
-    # Create a wrapper script
+    # Create a custom wrapper script
     (bin/"PlasAnn").write <<~EOS
       #!/bin/bash
+      
+      # Set PATH to include blast and prodigal
       export PATH="#{Formula["blast"].opt_bin}:#{Formula["prodigal"].opt_bin}:$PATH"
-      #{Formula["python@3.9"].opt_bin}/python3 "#{libexec}/fixed_annotate_plasmid.py" "$@"
+      
+      # Create a temporary directory for importing
+      TMPDIR=$(mktemp -d)
+      
+      # Create a simple import-friendly script in the temporary dir
+      cat > $TMPDIR/run_plasann.py << 'EOF'
+      import sys
+      import os
+      import argparse
+      
+      # Add the libexec directory to Python's path
+      sys.path.append("#{libexec}")
+      
+      # Import from Scripts directory
+      from Scripts import essential_annotation
+      from Scripts import draw_plasmid
+      
+      # Import original main function
+      sys.path.append("#{libexec}/Scripts")
+      from annotate_plasmid import main
+      
+      if __name__ == "__main__":
+          main()
+      EOF
+      
+      # Run the script
+      python3 $TMPDIR/run_plasann.py "$@"
+      
+      # Clean up
+      rm -rf $TMPDIR
     EOS
     
     chmod 0755, bin/"PlasAnn"
-    chmod 0755, libexec/"fixed_annotate_plasmid.py"
   end
 
   test do
