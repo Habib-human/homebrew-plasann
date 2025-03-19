@@ -12,8 +12,8 @@ class Plasann < Formula
     depends_on "prodigal"
   
     resource "biopython" do
-      url "https://files.pythonhosted.org/packages/7f/7e/f8b671789235e6a20ae9115959a64b18e2cf55ec9d3a9197eea3727e78be/biopython-1.81.tar.gz"
-      sha256 "2cf38112b6d8415ad7bc57a775c23f4d4acabe3e1d3eb7f657c9207f6c9f3786"
+      url "https://files.pythonhosted.org/packages/7e/ce/02941904f65e0b27a0c3a3bf67fbfa0e4648c4e765b02b3d09e7cc7139c8/biopython-1.85.tar.gz"
+      sha256 "85702d00ac816b664a00ad99db02159e76d02aea325d841a32fc913b9c4213d6"
     end
   
     resource "pandas" do
