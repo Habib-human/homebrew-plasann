@@ -12,22 +12,14 @@ class Plasann < Formula
     # Install the Scripts directory
     libexec.install "Scripts"
     
-    # Create a smart wrapper script that installs dependencies if needed
+    # Install required dependencies
+    system Formula["python@3.9"].opt_bin/"pip3", "install", "gdown", "biopython", "pandas", "matplotlib", "pycirclize"
+    
+    # Create a simple direct wrapper - no Python packaging involved
     (bin/"PlasAnn").write <<~EOS
       #!/bin/bash
-      
-      # Set path to include blast and prodigal
       export PATH="#{Formula["blast"].opt_bin}:#{Formula["prodigal"].opt_bin}:$PATH"
-      
-      # Check for required modules and install if missing
-      python3 -c "import gdown" 2>/dev/null || pip3 install gdown
-      python3 -c "import biopython" 2>/dev/null || pip3 install biopython
-      python3 -c "import pandas" 2>/dev/null || pip3 install pandas
-      python3 -c "import matplotlib" 2>/dev/null || pip3 install matplotlib
-      python3 -c "import pycirclize" 2>/dev/null || pip3 install pycirclize
-      
-      # Run the script directly
-      python3 "#{libexec}/Scripts/annotate_plasmid.py" "$@"
+      #{Formula["python@3.9"].opt_bin}/python3 "#{libexec}/Scripts/annotate_plasmid.py" "$@"
     EOS
     
     chmod 0755, bin/"PlasAnn"
